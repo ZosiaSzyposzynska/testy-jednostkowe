@@ -1,35 +1,50 @@
-
 import CurrencyForm from './CurrencyForm';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '@testing-library/react';
+import { render, screen, cleanup } from '@testing-library/react';
 
 describe('Component CurrencyForm', () => {
-  it('should render without crashing', () => {
-    render(<CurrencyForm action={() => {}} />);
-  });
+ 
+  const testCases = [
+    { amount: '100', from: 'PLN', to: 'USD' },
+    { amount: '20', from: 'USD', to: 'PLN' },
+    { amount: '200', from: 'PLN', to: 'USD' },
+    { amount: '345', from: 'USD', to: 'PLN' },
+  ];
 
+
+  for (const testCase of testCases) {
     it('should run action callback with proper data on form submit', () => {
-    const action = jest.fn();
+      const action = jest.fn();
 
-    // render component
-    render(<CurrencyForm action={action} />);
+     
+      render(<CurrencyForm action={action} />);
 
-    // find “convert” button
-    const submitButton = screen.getByText('Convert');
+    
+      const submitButton = screen.getByText('Convert');
 
-    // simulate user click on "convert" button
-    userEvent.click(submitButton);
+   
+      const amountField = screen.getByTestId('amount');
+      const fromField = screen.getByTestId('from');
+      const toField = screen.getByTestId('to');
 
-    // check if action callback was called once
-    expect(action).toHaveBeenCalledTimes(1);
+     
+      userEvent.type(amountField, testCase.amount);
+      userEvent.selectOptions(fromField, testCase.from);
+      userEvent.selectOptions(toField, testCase.to);
 
-  });
+     
+      userEvent.click(submitButton);
+
+   
+      expect(action).toHaveBeenCalledTimes(1);
+      expect(action).toHaveBeenCalledWith({
+        amount: parseInt(testCase.amount),
+        from: testCase.from,
+        to: testCase.to,
+      });
+    });
+  }
 
 
-const amountField = screen.getByTestId('amount');
-const fromField = screen.getByTestId('from');
-const toField = screen.getByTestId('to');
-
-
-
+  cleanup();
 });
